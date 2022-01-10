@@ -1,0 +1,4 @@
+// This code includes encoded bitmaps of glyphs from the Courier typeface which
+// was designed by Howard G. "Bud" Kettler in the 1950's for use with IBM
+// typewriters.
+//
