@@ -1,6 +1,6 @@
-// This code includes bitmap glyphs from the JF Dot Izumi Gothic 16 Bold typeface, which were
-// converted from JF-Dot-Izumi16B.ttf as downloaded from http://jikasei.me/font/jf-dotfont/
-// in November 2021.
+// This code includes bitmap glyphs extracted from a PNG sprite sheet document created
+// using the JF Dot Izumi Gothic 16 Bold font, JF-Dot-Izumi16B.ttf, as downloaded from
+// http://jikasei.me/font/jf-dotfont/ in November 2021.
 //
 // As I understand it, JF Dot Izumi is licensed under the closest equivalent of Public
 // Domain that is possible under Japanese copyright law, which is a bit different
