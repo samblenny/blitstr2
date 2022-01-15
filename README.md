@@ -16,5 +16,11 @@ Compared to the original version of blitstr, blitstr2:
 
 ## License
 
-Dual licensed under the terms of [Apache 2.0](LICENSE-APACHE) or
-[MIT](LICENSE-MIT), at your option.
+Source code for blitstr2 is dual licensed under the terms of [Apache 2.0](LICENSE-APACHE)
+or [MIT](LICENSE-MIT), at your option.
+
+Glyph bitmaps included with blitstr2 have their own copyrights and licenses
+(OFL-1.1, public domain, Japanese equivalent of public domain).
+
+See [LEGAL.md](LEGAL.md) for copyright and license details on embedded glyph
+bitmaps.
