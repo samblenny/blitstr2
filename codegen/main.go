@@ -15,17 +15,26 @@ import (
 // Command line switch to confirm intent of writing output files
 const confirm = "--write"
 
+// Command line switch to enable debug output
+const debug = "--debug"
+
+// Change this to control the visibility of debug messages
+var enableDebug = false
+
 // Main: check for confirmation switch before writing files
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == confirm {
+		codegen()
+	} else if len(os.Args) == 3 && os.Args[1] == confirm && os.Args[2] == debug {
+		enableDebug = true
+		codegen()
+	} else if len(os.Args) == 3 && os.Args[1] == debug && os.Args[2] == confirm {
+		enableDebug = true
 		codegen()
 	} else {
 		usage()
 	}
 }
-
-// Change this to control the visibility of debug messages
-const enableDebug = false
 
 // Generate rust source code files for fonts
 func codegen() {
@@ -73,6 +82,6 @@ func readPNGFile(name string) image.Image {
 func usage() {
 	conf := NewConfig("config.json")
 	fsList := conf.Fonts()
-	u := RenderUsageTemplate(confirm, fsList)
+	u := RenderUsageTemplate(confirm, debug, fsList)
 	fmt.Println(u)
 }

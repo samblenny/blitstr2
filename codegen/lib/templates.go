@@ -10,8 +10,8 @@ import (
 )
 
 // Render the command line usage message
-func RenderUsageTemplate(confirm string, fonts []FontSpec) string {
-	context := usageTemplateContext{confirm, fonts}
+func RenderUsageTemplate(confirm string, debug string, fonts []FontSpec) string {
+	context := usageTemplateContext{confirm, debug, fonts}
 	return renderTemplate(usageTemplate, "usage", context)
 }
 
@@ -24,6 +24,7 @@ func RenderFontFileTemplate(f FontSpec, gs GlyphSet) string {
 // Holds data for rendering usageTemplate
 type usageTemplateContext struct {
 	Confirm string
+	Debug   string
 	Fonts   []FontSpec
 }
 
@@ -49,6 +50,7 @@ func renderTemplate(templateString string, name string, context interface{}) str
 const usageTemplate = `
 This tool generates fonts in the form of rust source code.
 To confirm that you want to write the files, use the {{.Confirm}} switch.
+To show debug info, use the {{.Debug}} switch.
 
 Font files that will be generated:{{range $f := .Fonts}}
   {{$f.RustOut}}{{end}}
