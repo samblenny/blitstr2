@@ -138,9 +138,8 @@ func (m Matrix) trimLeadingEmptyRows(limit int) Matrix {
 // with troubleshooting character map setup when adding a new font.
 func (m Matrix) Debug(cs CharSpec, enable bool) {
 	if enable {
-		cp := cs.FirstCodepoint
-		cluster := cs.GraphemeCluster()
-		fmt.Printf("%X: '%s' = %+q\n", cp, cluster, cluster)
+		cp := cs.Hex
+		fmt.Printf("%X:\n", cp)
 		fmt.Println(m.convertToText())
 	}
 }

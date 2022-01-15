@@ -13,10 +13,8 @@ type FontSpec struct {
 	Border    int        // How many px wide are top and left borders?
 	Legal     string     // Credits or license notices to included in .rs font file comments
 	CSList    []CharSpec // Map of grapheme clusters to glyph grid coordinates
-	AliasList []GCAlias  // Map of grapheme cluster aliases (alternate names for glyphs)
 	RustOut   string     // Where should the generated rust source code go?
 	GlyphTrim string     // How should bitmap glyphs be trimmed (proportional or CJK)?
-	M3Seed    uint32     // Hash seed (change value in config.json in case of hash collisions
 }
 
 // Look up trim limits based on row & column in glyph grid
