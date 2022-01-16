@@ -229,7 +229,7 @@ pub const CODEPOINTS: [u32; 206] = [
 ];
 
 /// Packed 16px * 16px glyph pattern data.
-/// Pixels are packed in row-major order with MSB of first pixel word
+/// Pixels are packed in row-major order with LSB of first pixel word
 /// containing the top left pixel. Bit of 0 means clear, 1 means set
 pub const GLYPHS: [u32; 1648] = [
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
