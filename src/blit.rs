@@ -62,22 +62,20 @@ fn newline(clip: ClipRect, c: &mut Cursor) {
 /// 1. Fits in word: xr:1..7   => (data[0].bit_30)->(data[0].bit_26), mask:0x7c00_0000
 /// 2. Spans words:  xr:30..36 => (data[0].bit_01)->(data[1].bit_29), mask:[0x0000_0003,0xe000_000]
 ///
-fn xor_char(
-    fb: &mut FrBuf,
-    clip: ClipRect,
-    c: &mut Cursor,
-    ch: char,
-) -> Result<(), usize> {
+fn xor_char(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, ch: char) -> Result<(), usize> {
     if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
         return Ok(());
     }
     // Look up glyph for character and unpack its header
     // TODO: make this aware of multiple fonts
-    let glyph_offset = fonts::regular_glyph_offset(ch)?;
+    let glyph = match fonts::regular_glyph(ch) {
+        Ok(g) => g,
+        _ => fonts::emoji_glyph(ch)?,
+    };
     // TODO: determine actual width for proportional fonts
     let wide = 16;
     // TODO: make this aware of multiple fonts
-    let high = fonts::regular::MAX_HEIGHT as usize;
+    let high = 16 as usize;
     // Don't clip if cursor is left of clip rect; instead, advance the cursor
     if c.pt.x < clip.min.x {
         c.pt.x = clip.min.x;
@@ -104,8 +102,6 @@ fn xor_char(
     } else {
         clip.max.y - y0 // Clip bottom of glyph
     };
-    // TODO: make this aware of multiple fonts
-    let glyph = fonts::regular_glyph(glyph_offset)?;
     for y in 0..y_max {
         // Skip rows that are above the clip region
         if y0 + y < clip.min.y {
@@ -117,9 +113,9 @@ fn xor_char(
         //  when y==1, this does (glyph[0] >> 16) & mask,
         //  when y==2, this does (glyph[1] >>  0) & mask,
         //  ...
-        let mask = 0x00ff as u32;
+        let mask = 0x0000ffff as u32;
         let shift = (y & 1) << 4;
-        let mut pattern = (glyph[y >> 1] >> shift) & mask;
+        let pattern = (glyph[y >> 1] >> shift) & mask;
         // XOR glyph pixels onto destination buffer
         let base = (y0 + y) * WORDS_PER_LINE;
         fb[base + dest_low_word] ^= pattern << (32 - px_in_dest_low_word);
