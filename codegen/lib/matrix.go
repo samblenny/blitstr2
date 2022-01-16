@@ -25,7 +25,7 @@ type MatrixRow []int
 // - bit=1: invert color of pixel from background bitmap
 //
 // Pixel packing happens in row-major order (first left to right, then top to
-// bottom) with the glyph's top-left pixel placed in the most significant bit
+// bottom) with the glyph's top-left pixel placed in the least significant bit
 // of the first pixel word.
 func (m Matrix) convertToPattern() []uint32 {
 	// Pack trimmed pattern into a byte array
@@ -36,8 +36,8 @@ func (m Matrix) convertToPattern() []uint32 {
 	bits := 0
 	for y := 0; y < high; y++ {
 		for x := 0; x < wide; x++ {
-			bufWord <<= 1
-			bufWord |= uint32(m[y][x])
+			shift := ((y%2)*16) + x
+			bufWord |= uint32(m[y][x]) << shift
 			bits += 1
 			if bits == 32 {
 				pattern = append(pattern, bufWord)

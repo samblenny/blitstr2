@@ -11,9 +11,6 @@ import (
 
 // Holds packed XOR mask values of a blit pattern for character's glyph.
 //
-// Header: .Words[0] = ((width of blit pattern in px uint8) << 16)
-//                     | (height of blit pattern in px as uint8) << 8)
-//                     | (y-offset down from top of pattern as uint8)
 // Pixel order: row-major order traversal of px matrix; top-left pixel goes in
 //              least significant bit of of .Words[1]
 // Mask values: bit=1 means foreground, bit=0 means background
