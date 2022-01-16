@@ -5,6 +5,7 @@ use crate::cliprect::ClipRect;
 use crate::cursor::Cursor;
 use crate::fonts;
 use crate::framebuffer::{FrBuf, LINES, WIDTH, WORDS_PER_LINE};
+use crate::pt::Pt;
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
@@ -35,18 +36,44 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
 
 /// XOR blit a string with specified style, clip rect, starting at cursor
 pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
+    const NULL_GLYPH: [u32; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
+    const REPLACEMENT: char = '\u{FFFD}';
     for ch in s.chars() {
         if ch == '\n' {
             newline(clip, c);
         } else {
-            // TODO: handle possible error for missing glyphs
-            let _ = xor_char(fb, clip, c, ch);
+            // Look up the glyph for this char
+            // TODO: make this aware of multiple fonts
+            let glyph = match fonts::regular_glyph(ch) {
+                Ok(g) => g,
+                _ => match fonts::emoji_glyph(ch) {
+                    Ok(g) => g,
+                    _ => match fonts::regular_glyph(REPLACEMENT) {
+                        Ok(g) => g,
+                        _ => &NULL_GLYPH,
+                    },
+                },
+            };
+            // TODO: determine actual width for proportional fonts
+            let wide = 16;
+            // TODO: make this aware of multiple fonts
+            let high = 16;
+            // Adjust for word wrapping
+            if c.pt.x + wide + 2 >= clip.max.x {
+                newline(clip, c);
+            }
+            // Blit the glyph and advance the cursor
+            xor_glyph(fb, &c.pt, glyph);
+            c.pt.x += wide + 2;
+            if high > c.line_height {
+                c.line_height = high;
+            }
         }
     }
 }
 
 /// Advance the cursor to the start of a new line within the clip rect
-fn newline(clip: ClipRect, c: &mut Cursor) {
+pub fn newline(clip: ClipRect, c: &mut Cursor) {
     c.pt.x = clip.min.x;
     if c.line_height < fonts::small::MAX_HEIGHT as usize {
         c.line_height = fonts::small::MAX_HEIGHT as usize;
@@ -55,57 +82,33 @@ fn newline(clip: ClipRect, c: &mut Cursor) {
     c.line_height = 0;
 }
 
-/// Blit a char with: XOR, align left:xr.0 top:yr.0, pad L:1px R:2px
-/// Return: width in pixels of character + padding that were blitted (0 if won't fit in clip region)
+/// Blit a glyph with XOR at point; caller is responsible for word wrap.
 ///
 /// Examples of word alignment for destination frame buffer:
 /// 1. Fits in word: xr:1..7   => (data[0].bit_30)->(data[0].bit_26), mask:0x7c00_0000
 /// 2. Spans words:  xr:30..36 => (data[0].bit_01)->(data[1].bit_29), mask:[0x0000_0003,0xe000_000]
 ///
-fn xor_char(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, ch: char) -> Result<(), usize> {
-    if clip.max.y > LINES || clip.max.x > WIDTH || clip.min.x >= clip.max.x {
-        return Ok(());
-    }
-    // Look up glyph for character and unpack its header
-    // TODO: make this aware of multiple fonts
-    let glyph = match fonts::regular_glyph(ch) {
-        Ok(g) => g,
-        _ => fonts::emoji_glyph(ch)?,
-    };
-    // TODO: determine actual width for proportional fonts
-    let wide = 16;
-    // TODO: make this aware of multiple fonts
-    let high = 16 as usize;
-    // Don't clip if cursor is left of clip rect; instead, advance the cursor
-    if c.pt.x < clip.min.x {
-        c.pt.x = clip.min.x;
-    }
-    // Add 1px pad to left
-    let mut x0 = c.pt.x + 1;
-    // Adjust for word wrapping
-    if x0 + wide + 2 >= clip.max.x {
-        newline(clip, c);
-        x0 = c.pt.x + 1;
+pub fn xor_glyph(fb: &mut FrBuf, p: &Pt, glyph: &[u32]) {
+    const SPRITE_PX: usize = 16;
+    const SPRITE_WORDS: usize = 8;
+    if glyph.len() < SPRITE_WORDS {
+        // Fail silently if the glyph slice was too small
+        // TODO: Maybe return an error? Not sure which way is better.
+        return;
     }
     // Calculate word alignment for destination buffer
-    let x1 = x0 + wide;
+    let x0 = p.x;
+    let x1 = p.x + SPRITE_PX;
     let dest_low_word = x0 >> 5;
     let dest_high_word = x1 >> 5;
-    let px_in_dest_low_word = 32 - (x0 & 0x1f);
+    let px_in_dest_low_word = 31 - (x0 & 0x1f);
     // Blit it
-    let y0 = c.pt.y;
-    if y0 > clip.max.y {
-        return Ok(()); // Entire glyph is outside clip rect, so clip it
-    }
-    let y_max = if (y0 + high) <= clip.max.y {
-        high
-    } else {
-        clip.max.y - y0 // Clip bottom of glyph
-    };
-    for y in 0..y_max {
-        // Skip rows that are above the clip region
-        if y0 + y < clip.min.y {
-            continue; // Clip top of glyph
+    let mut row_base = p.y * WORDS_PER_LINE;
+    const ROW_LIMIT: usize = LINES * WORDS_PER_LINE;
+    for y in 0..SPRITE_PX {
+        if row_base >= ROW_LIMIT {
+            // Clip anything that would run off the end of the frame buffer
+            break;
         }
         // Unpack pixels for this glyph row.
         // CAUTION: some math magic happening here...
@@ -117,14 +120,9 @@ fn xor_char(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, ch: char) -> Result<
         let shift = (y & 1) << 4;
         let pattern = (glyph[y >> 1] >> shift) & mask;
         // XOR glyph pixels onto destination buffer
-        let base = (y0 + y) * WORDS_PER_LINE;
-        fb[base + dest_low_word] ^= pattern << (32 - px_in_dest_low_word);
-        fb[base + dest_high_word] ^= pattern >> px_in_dest_low_word;
+        fb[row_base + dest_low_word] ^= pattern.wrapping_shl(32 - px_in_dest_low_word as u32);
+        fb[row_base + dest_high_word] ^= pattern.wrapping_shr(px_in_dest_low_word as u32);
+        // Advance destination offset using + instead of * to maybe save some CPU cycles
+        row_base += WORDS_PER_LINE;
     }
-    let width_of_blitted_pixels = wide + 3;
-    c.pt.x += width_of_blitted_pixels;
-    if high > c.line_height {
-        c.line_height = high;
-    }
-    return Ok(());
 }
