@@ -10,6 +10,7 @@ mod cursor;
 pub mod demo;
 mod fonts;
 mod framebuffer;
+mod m3hash;
 mod pt;
 
 // Export v1 api names. The point of using re-exports is to allow for splitting
@@ -23,6 +24,7 @@ pub use api::v1::*;
 #[cfg(test)]
 mod tests {
     use crate::api::v1::*;
+    use crate::m3hash;
 
     #[test]
     fn test_clear_region() {
@@ -50,54 +52,18 @@ mod tests {
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Small, "abc");
-        // Note how hash differs from tests with Regular and Bold (below)
+        paint_str(fb, clip, cursor, "abc");
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x5DE65BFC);
     }
 
     #[test]
-    /// Test paint_str() with GlyphStyle::Regluar and short ascii string
-    fn test_paint_str_glyphstyle_regular_abc() {
-        let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "abc");
-        // Note how hash differs from tests with Small (above) and Bold (below)
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
-    }
-
-    #[test]
-    /// Test paint_str() with GlyphStyle::Bold and short ascii string
-    fn test_paint_str_glyphstyle_bold_abc() {
-        let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Bold, "abc");
-        // Note how hash differs from tests with Small and Regular (above)
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x411C2E62);
-    }
-
-    #[test]
-    /// Test paint_str() with an emoji cat in multiple styles.
-    /// The point is that emoji glyphs are the same regardless of GlyphStyle.
+    /// Test paint_str() with an emoji cat.
     fn test_paint_str_emoji_cat_multi_style() {
         let fb = &mut new_fr_buf();
         let clip = ClipRect::full_screen();
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Small, "😸"); // Small
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
-
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, "😸"); // Regular
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
-
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Bold, "😸"); // Bold
+        paint_str(fb, clip, cursor, "😸");
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
     }
 
@@ -120,7 +86,7 @@ mod tests {
         // Paint the whole string at once
         clear_region(fb, clip);
         let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, GlyphStyle::Regular, s);
+        paint_str(fb, clip, cursor, s);
         assert_eq!(m3hash::frame_buffer(fb, 0), 0xE5240DD1); // Same hash
 
         // Paint it again one char at a time
@@ -135,7 +101,7 @@ mod tests {
                     Some((k, _)) => &s[j..k],
                     _ => &s[j..],
                 };
-                paint_str(fb, clip, cursor, GlyphStyle::Regular, c);
+                paint_str(fb, clip, cursor, c);
             } else {
                 break; // That was the last char, so stop now
             }

@@ -19,7 +19,7 @@ pub mod no_std_bindings;
 pub extern "C" fn init() {
     // Show sample text
     blitstr2::demo::sample_text(unsafe { &mut FB });
-    blitstr2::demo::goose_poem(unsafe { &mut FB });
+//    blitstr2::demo::goose_poem(unsafe { &mut FB });
 }
 
 /// Export pointer to frame buffer shared memory for javascript + wasm32

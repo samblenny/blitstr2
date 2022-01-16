@@ -6,7 +6,5 @@
 use core::panic::PanicInfo;
 #[panic_handler]
 pub fn panic(_panic_info: &PanicInfo) -> ! {
-    unsafe {
-        core::arch::wasm32::unreachable();
-    }
+    core::arch::wasm32::unreachable();
 }
