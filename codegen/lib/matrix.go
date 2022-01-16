@@ -13,11 +13,8 @@ type Matrix [][]int
 // Holds one row of pixel values from a matrix
 type MatrixRow []int
 
-// Return pixel matrix as pattern packed into a [u32] array.
-// pat[0]: ((width of blit pattern in px for trimmed glyph as u8) << 16)
-//         | (height of blit pattern in px for trimmed glyph as u8) << 8)
-//         | (number of blank rows trimmed from top of glyph as u8)
-// pat[1:(1+ceiling(w*h/32))]: 1-bit pixels packed into u32 words
+// Return pixel matrix as 16*16px sprite pattern packed into a [u32] array.
+// pat[0:7]: 1-bit pixels packed into u32 words
 //
 // Pixel bit values are intended as a background/foreground mask for use with
 // XOR blit. Color palette is not set. Rather, palette depends on contents of
@@ -29,63 +26,69 @@ type MatrixRow []int
 //
 // Pixel packing happens in row-major order (first left to right, then top to
 // bottom) with the glyph's top-left pixel placed in the most significant bit
-// of the first pixel word. Patterns that need padding because their size is
-// not a multiple of 32 bits (width*height % 32 != 0) get padded with zeros in
-// the least significant bits of the last word.
-func (m Matrix) convertToPattern(yOffset uint32) []uint32 {
+// of the first pixel word.
+func (m Matrix) convertToPattern() []uint32 {
 	// Pack trimmed pattern into a byte array
-	patW := uint32(0)
-	patH := uint32(0)
-	if len(m) > 0 && len(m[0]) > 0 {
-		patW = uint32(len(m[0]))
-		patH = uint32(len(m))
-	}
-	pattern := []uint32{(patW << 16) | (patH << 8) | yOffset}
+	wide := len(m[0])
+	high := len(m)
+	pattern := []uint32{}
 	bufWord := uint32(0)
-	flushed := false
-	for y := uint32(0); y < patH; y++ {
-		for x := uint32(0); x < patW; x++ {
-			if m[y][patW-1-x] > 0 {
-				bufWord = (bufWord << 1) | 1
-			} else {
-				bufWord = (bufWord << 1)
-			}
-			flushed = false
-			if (y*patW+x)%32 == 31 {
+	bits := 0
+	for y := 0; y < high; y++ {
+		for x := 0; x < wide; x++ {
+			bufWord <<= 1
+			bufWord |= uint32(m[y][x])
+			bits += 1
+			if bits == 32 {
 				pattern = append(pattern, bufWord)
 				bufWord = 0
-				flushed = true
+				bits = 0
 			}
 		}
 	}
-	if !flushed {
-		finalShift := 32 - ((patW * patH) % 32)
-		pattern = append(pattern, bufWord<<finalShift)
+	if bits > 0 {
+		finalShift := 32 - bits
+		bufWord <<= finalShift
+		pattern = append(pattern, bufWord)
 	}
 	return pattern
 }
 
 // Trim pixel matrix to remove whitespace around the glyph. Return the trimmed
 // matrix and the y-offset (pixels of top whitespace that were trimmed).
-func (m Matrix) Trim(font FontSpec, row int, col int) (Matrix, uint32) {
+func (m Matrix) Trim(font FontSpec, row int, col int) Matrix {
 	// Trim left whitespace
 	trblTrimLimit := font.TrimLimits(row, col)
 	m = m.transpose()
 	m = m.trimLeadingEmptyRows(trblTrimLimit[3])
-	// Trim right whitespace
-	m = m.reverseRows()
-	m = m.trimLeadingEmptyRows(trblTrimLimit[1])
-	m = m.reverseRows()
 	m = m.transpose()
-	// Trim top whitespace and calculate y-offset
-	preTrimH := len(m)
-	m = m.trimLeadingEmptyRows(trblTrimLimit[0])
-	yOffset := preTrimH - len(m)
-	// Trim bottom whitespace
-	m = m.reverseRows()
-	m = m.trimLeadingEmptyRows(trblTrimLimit[2])
-	m = m.reverseRows()
-	return m, uint32(yOffset)
+	m = m.padTo16x16()
+	// Don't trim right whitespace
+	// Don't trim top whitespace
+	// Don't trim bottom whitespace
+	return m
+}
+
+// Pad a matrix to 16x16, adding padding to the right and bottom
+func (m Matrix) padTo16x16() Matrix {
+	// Make an empty 16x16 destination matrix
+	dest := Matrix{}
+	for y := 0; y < 16; y++ {
+		row := MatrixRow{}
+		for x := 0; x < 16; x++ {
+			row = append(row, 0)
+		}
+		dest = append(dest, row)
+	}
+	// Copy pixels from source matrix to top-left of destination matrix
+	wide := len(m[0])
+	high := len(m)
+	for y := 0; y < high; y++ {
+		for x := 0; x < wide; x++ {
+			dest[y][x] = m[y][x]
+		}
+	}
+	return dest
 }
 
 // Transpose a matrix (flip around diagonal)
@@ -150,7 +153,7 @@ func (m Matrix) convertToText() string {
 	for _, row := range m {
 		for _, px := range row {
 			if px == 1 {
-				ascii += "#"
+				ascii += "█" // "\u2588"
 			} else {
 				ascii += "."
 			}

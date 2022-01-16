@@ -68,15 +68,14 @@ const fontFileTemplate = `// DO NOT MAKE EDITS HERE because this file is automat
 #![allow(dead_code)]
 
 /// Maximum height of glyph patterns in this bitmap typeface.
-/// This will be true: h + y_offset <= MAX_HEIGHT
 pub const MAX_HEIGHT: u8 = {{.Font.Size}};
 
 /// Unicode character codepoints corresponding to glyph sprites in GLYPHS array.
 /// Indended use:
-///  1. Do binary search on CODEPOINTS to find index of a codepoint that you want to
-///     locate the glyph data for.
-///  2. Multiply resulting CODEPOINTS index by 8 (<<3) to get index into GLYPHS
-///     (because 16x16px glyph size is 8*u32)
+///  1. Do binary search on CODEPOINTS to find index of the codepoint corresponding
+///     to the glyph you want to locate
+///  2. Multiply resulting CODEPOINTS index by 8 (<<3) to get index into GLYPHS for
+///     the corresponding glyph sprite (because 16*16px sprite size is 8*u32)
 pub const CODEPOINTS: [u32; {{.GS.CodepointsLen}}] = [
 {{.GS.Codepoints}}];
 

@@ -55,9 +55,9 @@ func NewBlitPattern(img image.Image, font FontSpec, cs CharSpec, dbg bool) BlitP
 		}
 		pxMatrix = append(pxMatrix, row)
 	}
-	pxMatrix, yOffset := pxMatrix.Trim(font, row, col)
+	pxMatrix = pxMatrix.Trim(font, row, col)
 	pxMatrix.Debug(cs, dbg)
-	patternBytes := pxMatrix.convertToPattern(yOffset)
+	patternBytes := pxMatrix.convertToPattern()
 	return BlitPattern{patternBytes, cs}
 }
 
