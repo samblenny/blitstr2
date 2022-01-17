@@ -19,15 +19,34 @@ pub mod pt;
 /// These are integration tests aimed at ensuring pixel-accurate stability of
 /// string painting operations by exercising edge cases around glyph lookup,
 /// word-wrapping, etc.
+///
+/// Rationale and Procedures:
+///
+/// Many of these tests call a function from crate::demo that modifies a
+/// frame buffer, then verify that the murmur3 hash of the frame buffer
+/// contents match an expected value. The idea is to maintain pixel-accurate
+/// consistency in blitting glyphs. If something about the glyph blitting or
+/// string rendering changes, a frame buffer hash should also change.
+///
+/// To update the frame buffer hashes, the procedure is:
+/// 1. Modify wasm_demo/src/lib.rs::init() to call the demo function
+/// 2. Rebuild the wasm_demo: cd wasm_demo; make install; ./webserver.rb
+/// 3. Load the wasm_demo in a browser (http://localhost:8000) and verify
+///    that the demo text looks as it should
+/// 4. Run cargo test: the test that calls the demo function should be
+///    failing the assert that checks the frame buffer. Note the left-hand
+///    hash value from the error message
+/// 5. Edit the assert in the test function to have the new hash value
+///
 #[cfg(test)]
 mod tests {
-    use crate::blit::{clear_region, paint_str};
+    use crate::blit::clear_region;
     use crate::cliprect::ClipRect;
     use crate::cursor::Cursor;
+    use crate::demo;
     use crate::framebuffer::{new_fr_buf, FrBuf, FRAME_BUF_SIZE, LINES, WIDTH, WORDS_PER_LINE};
     use crate::m3hash;
     use crate::pt::Pt;
-    use crate::demo;
 
     #[test]
     fn test_clear_region() {
@@ -41,80 +60,50 @@ mod tests {
     /// Test for hashed frame buffer match using the font sampler demo screen.
     /// This covers many string blitting features and edge cases all at once.
     /// If this test fails, try loading the wasm demo to look for what changed.
+    /// This covers several fonts:
+    ///  - latin regular
+    ///  - emoji
+    ///  - Japanese
+    ///  - Simplified Chinese
+    ///  - Korean
     fn test_demo_sample_text_frame_buffer_hash() {
         let fb = &mut new_fr_buf();
         demo::sample_text(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x59AA26A1);
-        assert_eq!(m3hash::frame_buffer(fb, 1), 0xAE37C33B);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 770682562);
+        assert_eq!(m3hash::frame_buffer(fb, 1), 1047968722);
     }
 
     #[test]
-    /// Test paint_str() with GlyphStyle::Small and short ascii string
-    fn test_paint_str_glyphstyle_small_abc() {
+    /// Test that the small latin font works
+    fn test_paint_str_pangram_latin_small() {
         let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, "abc");
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x5DE65BFC);
+        demo::paint_pangram_latin_small(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 1798718640);
     }
 
     #[test]
-    /// Test paint_str() with an emoji cat.
-    fn test_paint_str_emoji_cat_multi_style() {
-        let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, "😸");
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x3A4FFDB5); // Same hash
-    }
-
-    #[test]
-    /// Test paint_str() for full string at once vs. concatenating chars.
-    /// The point of this is, you can call paint_str() repeatedly reusing the
-    /// same cursor, and it will keep track of concatenation and word-wrap.
+    /// This tests that word-wrapping and text layout work properly. It should
+    /// be possible to get the exact same results by using one paint_str()
+    /// call to paint a full string, or by reusing a cursor across many calls
+    /// to paint_str() to paint the string character by character.
     fn test_paint_str_full_string_vs_char_by_char() {
         let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        let s = "The quick brown fox jumps over the lazy dog.";
-        // Paint the whole string at once
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, s);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0xE5240DD1); // Same hash
-
-        // Paint it again one char at a time
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        for i in 0..s.len() {
-            // This slicing is sort of like &str.iter(), but I needed a thing to
-            // yield &str instead of char, because paint_str() is designed to
-            // take grapheme clusters that can be more than 1 char long.
-            if let Some((j, _)) = s.char_indices().nth(i) {
-                let c = match s.char_indices().nth(j + 1) {
-                    Some((k, _)) => &s[j..k],
-                    _ => &s[j..],
-                };
-                paint_str(fb, clip, cursor, c);
-            } else {
-                break; // That was the last char, so stop now
-            }
-        }
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0xE5240DD1); // Same hash
+        demo::paint_pangram_as_full_str(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 229943020); // Same hash
+        demo::paint_pangram_char_by_char(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 229943020); // Same hash
     }
 
     #[test]
-    fn test_blit() {
+    /// This checks raw glyph blitting without word wrapping
+    fn test_low_level_glyph_blits() {
         let fb = &mut new_fr_buf();
-        let clip = ClipRect::full_screen();
-        clear_region(fb, clip);
-        let cursor = &mut Cursor::from_top_left_of(clip);
-        paint_str(fb, clip, cursor, "abc");
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
+        demo::low_level_glyph_blits(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 2300273120);
     }
 
     #[test]
+    /// ClipRect is used for word-wrapping
     fn test_cliprect() {
         let cr1 = ClipRect {
             min: Pt { x: 1, y: 2 },
@@ -125,6 +114,7 @@ mod tests {
     }
 
     #[test]
+    /// Cursor is used for text layout and word-wrapping
     fn test_cursor() {
         let c1 = Cursor {
             pt: Pt { x: 1, y: 2 },
@@ -137,13 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_demo() {
-        let fb = &mut new_fr_buf();
-        demo::sample_text(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x59AA26A1);
-    }
-
-    #[test]
+    /// FrBuf is the frame buffer target of blit operations
     fn test_framebuffer() {
         assert_eq!(LINES * WORDS_PER_LINE, FRAME_BUF_SIZE);
         assert!(LINES > 0);
@@ -153,6 +137,7 @@ mod tests {
     }
 
     #[test]
+    /// Pt is used to track the point at which to blit a glyph
     fn test_pt() {
         let p1 = Pt { x: 1, y: 2 };
         let p2 = Pt::new(1, 2);

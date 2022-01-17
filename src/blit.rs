@@ -45,6 +45,7 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     }
 }
 
+/// Find glyph for char using latin regular, emoji, ja, zh, and kr font data
 pub fn find_glyph(ch: char) -> fonts::GlyphSprite {
     match fonts::regular_glyph(ch) {
         Ok(g) => g,
@@ -67,8 +68,20 @@ pub fn find_glyph(ch: char) -> fonts::GlyphSprite {
     }
 }
 
-/// XOR blit a string with specified style, clip rect, starting at cursor
+/// Find glyph for char using only the latin small font data
+pub fn find_glyph_latin_small(ch: char) -> fonts::GlyphSprite {
+    match fonts::small_glyph(ch) {
+        Ok(g) => g,
+        _ => match fonts::small_glyph(REPLACEMENT) {
+            Ok(g) => g,
+            _ => NULL_GLYPH_SPRITE,
+        },
+    }
+}
+
+/// XOR blit a string using multi-lingual glyphs with specified clip rect, starting at cursor
 pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
+    const KERN: usize = 2;
     for ch in s.chars() {
         if ch == '\n' {
             newline(clip, c);
@@ -78,12 +91,37 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
             let wide = glyph.wide as usize;
             let high = glyph.high as usize;
             // Adjust for word wrapping
-            if c.pt.x + wide + 2 >= clip.max.x {
+            if c.pt.x + wide + KERN >= clip.max.x {
                 newline(clip, c);
             }
             // Blit the glyph and advance the cursor
             xor_glyph(fb, &c.pt, glyph);
-            c.pt.x += wide + 2;
+            c.pt.x += wide + KERN;
+            if high > c.line_height {
+                c.line_height = high;
+            }
+        }
+    }
+}
+
+/// XOR blit a string using latin small glyphs with specified clip rect, starting at cursor
+pub fn paint_str_latin_small(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
+    const KERN: usize = 1;
+    for ch in s.chars() {
+        if ch == '\n' {
+            newline(clip, c);
+        } else {
+            // Look up the glyph for this char
+            let glyph = find_glyph_latin_small(ch);
+            let wide = glyph.wide as usize;
+            let high = glyph.high as usize;
+            // Adjust for word wrapping
+            if c.pt.x + wide + KERN >= clip.max.x {
+                newline(clip, c);
+            }
+            // Blit the glyph and advance the cursor
+            xor_glyph(fb, &c.pt, glyph);
+            c.pt.x += wide + KERN;
             if high > c.line_height {
                 c.line_height = high;
             }

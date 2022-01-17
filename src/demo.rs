@@ -1,10 +1,12 @@
 // Copyright (c) 2022 Sam Blenny
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
-use crate::blit::{clear_region, paint_str};
+use crate::blit::{clear_region, paint_str, paint_str_latin_small, xor_glyph};
 use crate::cliprect::ClipRect;
 use crate::cursor::Cursor;
+use crate::fonts::{emoji_glyph, ja_glyph, kr_glyph, regular_glyph, small_glyph, zh_glyph};
 use crate::framebuffer::FrBuf;
+use crate::pt::Pt;
 
 /// Demonstrate available fonts
 pub fn sample_text(fb: &mut FrBuf) {
@@ -40,4 +42,66 @@ pub fn sample_text(fb: &mut FrBuf) {
     paint_str(fb, clip, c, iroha);
     paint_str(fb, clip, c, goose);
     paint_str(fb, clip, c, coffee);
+}
+
+pub const PANGRAM: &str = "The quick brown fox jumps over the lazy dog.";
+
+/// Paint pangram all at once
+pub fn paint_pangram_as_full_str(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    paint_str(fb, clip, cursor, PANGRAM);
+}
+
+/// Paint pangram char by char (result should match all at once above)
+pub fn paint_pangram_char_by_char(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    for i in 0..PANGRAM.len() {
+        // This slicing is sort of like &str.iter(), but I needed a thing to
+        // yield &str instead of char, because paint_str() is designed for &str
+        if let Some((j, _)) = PANGRAM.char_indices().nth(i) {
+            let c = match PANGRAM.char_indices().nth(j + 1) {
+                Some((k, _)) => &PANGRAM[j..k],
+                _ => &PANGRAM[j..],
+            };
+            paint_str(fb, clip, cursor, c);
+        } else {
+            break; // That was the last char, so stop now
+        }
+    }
+}
+
+/// Paint pangram in small latin glyphs
+pub fn paint_pangram_latin_small(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    paint_str_latin_small(fb, clip, cursor, PANGRAM);
+}
+
+/// Do low-level glyph blitting without word-wrapping
+pub fn low_level_glyph_blits(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let mut pt = Pt { x: 5, y: 5 };
+    let mut gs = small_glyph('M').unwrap();
+    xor_glyph(fb, &pt, gs);
+    pt.x += 20;
+    gs = regular_glyph('M').unwrap();
+    xor_glyph(fb, &pt, gs);
+    pt.x += 20;
+    gs = emoji_glyph('😸').unwrap();
+    xor_glyph(fb, &pt, gs);
+    pt.x += 20;
+    gs = zh_glyph('鹅').unwrap();
+    xor_glyph(fb, &pt, gs);
+    pt.x += 20;
+    gs = ja_glyph('い').unwrap();
+    xor_glyph(fb, &pt, gs);
+    pt.x += 20;
+    gs = kr_glyph('커').unwrap();
+    xor_glyph(fb, &pt, gs);
 }
