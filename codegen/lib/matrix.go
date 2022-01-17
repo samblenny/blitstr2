@@ -61,9 +61,11 @@ func (m Matrix) Trim(font FontSpec, row int, col int) Matrix {
 	trblTrimLimit := font.TrimLimits(row, col)
 	m = m.transpose()
 	m = m.trimLeadingEmptyRows(trblTrimLimit[3])
+	// Trim right whitespace
+	m = m.reverseRows()
+	m = m.trimLeadingEmptyRows(trblTrimLimit[3])
+	m = m.reverseRows()
 	m = m.transpose()
-	m = m.padTo16x16()
-	// Don't trim right whitespace
 	// Don't trim top whitespace
 	// Don't trim bottom whitespace
 	return m

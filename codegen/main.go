@@ -44,7 +44,7 @@ func codegen() {
 		// Find all the glyphs and pack them into a list of blit pattern objects
 		pl := patternListFromSpriteSheet(f)
 		// Make rust code for the blit pattern DATA array, plus an index list
-		gs := NewGlyphSetFrom(pl)
+		gs := NewGlyphSetFrom(pl, f)
 		// Generate rust source code and write it to a file
 		code := RenderFontFileTemplate(f, gs)
 		fmt.Println("Writing to", f.RustOut)

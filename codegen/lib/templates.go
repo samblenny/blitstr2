@@ -84,4 +84,8 @@ pub const CODEPOINTS: [u32; {{.GS.CodepointsLen}}] = [
 /// containing the top left pixel. Bit of 0 means clear, 1 means set
 pub const GLYPHS: [u32; {{.GS.GlyphsLen}}] = [
 {{.GS.Glyphs}}];
-`
+{{if .GS.Widths}}
+/// Widths for proportional glyphs
+pub const WIDTHS: [u8; {{.GS.WidthsLen}}] = [
+{{.GS.Widths}}];
+{{end}}`

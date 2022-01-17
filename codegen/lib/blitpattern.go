@@ -20,6 +20,7 @@ import (
 // of the last word.
 type BlitPattern struct {
 	Words []uint32
+	Width uint8
 	CS    CharSpec
 }
 
@@ -53,9 +54,11 @@ func NewBlitPattern(img image.Image, font FontSpec, cs CharSpec, dbg bool) BlitP
 		pxMatrix = append(pxMatrix, row)
 	}
 	pxMatrix = pxMatrix.Trim(font, row, col)
+	width := uint8(len(pxMatrix[0]))
+	pxMatrix = pxMatrix.padTo16x16()
 	pxMatrix.Debug(cs, dbg)
 	patternBytes := pxMatrix.convertToPattern()
-	return BlitPattern{patternBytes, cs}
+	return BlitPattern{patternBytes, width, cs}
 }
 
 // Convert blit pattern to rust source code for part of an array of bytes
