@@ -12,7 +12,6 @@ fn main() {
 
     // Call painting code
     demo::sample_text(fb);
-    demo::short_greeting(fb);
 
     // Unimplemented: copy frame buffer to a display device
 }

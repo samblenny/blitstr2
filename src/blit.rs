@@ -45,6 +45,28 @@ pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
     }
 }
 
+pub fn find_glyph(ch: char) -> fonts::GlyphSprite {
+    match fonts::regular_glyph(ch) {
+        Ok(g) => g,
+        _ => match fonts::emoji_glyph(ch) {
+            Ok(g) => g,
+            _ => match fonts::ja_glyph(ch) {
+                Ok(g) => g,
+                _ => match fonts::zh_glyph(ch) {
+                    Ok(g) => g,
+                    _ => match fonts::kr_glyph(ch) {
+                        Ok(g) => g,
+                        _ => match fonts::regular_glyph(REPLACEMENT) {
+                            Ok(g) => g,
+                            _ => NULL_GLYPH_SPRITE,
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+
 /// XOR blit a string with specified style, clip rect, starting at cursor
 pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
     for ch in s.chars() {
@@ -52,20 +74,8 @@ pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
             newline(clip, c);
         } else {
             // Look up the glyph for this char
-            // TODO: make this better for failover between multiple fonts
-            let glyph = match fonts::regular_glyph(ch) {
-                Ok(g) => g,
-                _ => match fonts::emoji_glyph(ch) {
-                    Ok(g) => g,
-                    _ => match fonts::regular_glyph(REPLACEMENT) {
-                        Ok(g) => g,
-                        _ => NULL_GLYPH_SPRITE,
-                    },
-                },
-            };
-            // TODO: determine actual width for proportional fonts
+            let glyph = find_glyph(ch);
             let wide = glyph.wide as usize;
-            // TODO: make this aware of multiple fonts
             let high = glyph.high as usize;
             // Adjust for word wrapping
             if c.pt.x + wide + 2 >= clip.max.x {
@@ -87,7 +97,7 @@ pub fn newline(clip: ClipRect, c: &mut Cursor) {
     if c.line_height < fonts::small::MAX_HEIGHT as usize {
         c.line_height = fonts::small::MAX_HEIGHT as usize;
     }
-    c.pt.y += c.line_height + 1;
+    c.pt.y += c.line_height + 2;
     c.line_height = 0;
 }
 

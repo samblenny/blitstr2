@@ -3,8 +3,11 @@
 //
 #![allow(dead_code)]
 pub mod emoji;
+pub mod ja;
+pub mod kr;
 pub mod regular;
 pub mod small;
+pub mod zh;
 
 // Font data is stored as CODEPOINTS and GLYPHS arrays. CODEPOINTS holds sorted
 // Unicode codepoints for characters included in the font, and GLYPHS holds
@@ -70,6 +73,60 @@ pub fn emoji_glyph(ch: char) -> Result<GlyphSprite, usize> {
                     glyph: &emoji::GLYPHS[offset..end],
                     wide: emoji::MAX_HEIGHT, // yes, use height for wide
                     high: emoji::MAX_HEIGHT,
+                }),
+                false => Err(0),
+            }
+        }
+        _ => Err(1),
+    }
+}
+
+pub fn zh_glyph(ch: char) -> Result<GlyphSprite, usize> {
+    match zh::CODEPOINTS.binary_search(&(ch as u32)) {
+        Ok(n) => {
+            let offset = n << 3;
+            let end = offset + 8;
+            match end <= zh::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &zh::GLYPHS[offset..end],
+                    wide: zh::MAX_HEIGHT, // yes, use height for wide
+                    high: zh::MAX_HEIGHT,
+                }),
+                false => Err(0),
+            }
+        }
+        _ => Err(1),
+    }
+}
+
+pub fn ja_glyph(ch: char) -> Result<GlyphSprite, usize> {
+    match ja::CODEPOINTS.binary_search(&(ch as u32)) {
+        Ok(n) => {
+            let offset = n << 3;
+            let end = offset + 8;
+            match end <= ja::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &ja::GLYPHS[offset..end],
+                    wide: ja::MAX_HEIGHT, // yes, use height for wide
+                    high: ja::MAX_HEIGHT,
+                }),
+                false => Err(0),
+            }
+        }
+        _ => Err(1),
+    }
+}
+
+pub fn kr_glyph(ch: char) -> Result<GlyphSprite, usize> {
+    match kr::CODEPOINTS.binary_search(&(ch as u32)) {
+        Ok(n) => {
+            let offset = n << 3;
+            let end = offset + 8;
+            match end <= kr::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &kr::GLYPHS[offset..end],
+                    wide: kr::MAX_HEIGHT, // yes, use height for wide
+                    high: kr::MAX_HEIGHT,
                 }),
                 false => Err(0),
             }

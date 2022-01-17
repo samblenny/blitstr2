@@ -56,10 +56,6 @@ mod tests {
         let fb = &mut new_fr_buf();
         demo::sample_text(fb);
         assert_eq!(m3hash::frame_buffer(fb, 0), 0x59AA26A1);
-        demo::short_greeting(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x7AC16AC8);
-        demo::goose_poem(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 0x9bd28a96);
     }
 
     #[test]
