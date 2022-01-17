@@ -16,13 +16,25 @@ pub mod small;
 //  2. Multiply the codepoint index by 8, yielding an offset into GLYPHS
 //  3. Slice 8 u32 words from GLYPHS starting at the offset
 
-pub fn small_glyph(ch: char) -> Result<&'static [u32], usize> {
+/// Struct to hold sprite pixel reference and associated metadata for glyphs
+#[derive(Copy, Clone, Debug)]
+pub struct GlyphSprite {
+    pub glyph: &'static [u32],
+    pub wide: u8,
+    pub high: u8,
+}
+
+pub fn small_glyph(ch: char) -> Result<GlyphSprite, usize> {
     match small::CODEPOINTS.binary_search(&(ch as u32)) {
         Ok(n) => {
             let offset = n << 3;
             let end = offset + 8;
-            match end < small::GLYPHS.len() {
-                true => Ok(&small::GLYPHS[offset..end]),
+            match end <= small::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &small::GLYPHS[offset..end],
+                    wide: small::WIDTHS[n],
+                    high: small::MAX_HEIGHT,
+                }),
                 false => Err(0),
             }
         }
@@ -30,13 +42,17 @@ pub fn small_glyph(ch: char) -> Result<&'static [u32], usize> {
     }
 }
 
-pub fn regular_glyph(ch: char) -> Result<&'static [u32], usize> {
+pub fn regular_glyph(ch: char) -> Result<GlyphSprite, usize> {
     match regular::CODEPOINTS.binary_search(&(ch as u32)) {
         Ok(n) => {
             let offset = n << 3;
             let end = offset + 8;
-            match end < regular::GLYPHS.len() {
-                true => Ok(&regular::GLYPHS[offset..end]),
+            match end <= regular::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &regular::GLYPHS[offset..end],
+                    wide: regular::WIDTHS[n],
+                    high: regular::MAX_HEIGHT,
+                }),
                 false => Err(0),
             }
         }
@@ -44,13 +60,17 @@ pub fn regular_glyph(ch: char) -> Result<&'static [u32], usize> {
     }
 }
 
-pub fn emoji_glyph(ch: char) -> Result<&'static [u32], usize> {
+pub fn emoji_glyph(ch: char) -> Result<GlyphSprite, usize> {
     match emoji::CODEPOINTS.binary_search(&(ch as u32)) {
         Ok(n) => {
             let offset = n << 3;
             let end = offset + 8;
-            match end < emoji::GLYPHS.len() {
-                true => Ok(&emoji::GLYPHS[offset..end]),
+            match end <= emoji::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &emoji::GLYPHS[offset..end],
+                    wide: emoji::MAX_HEIGHT, // yes, use height for wide
+                    high: emoji::MAX_HEIGHT,
+                }),
                 false => Err(0),
             }
         }
