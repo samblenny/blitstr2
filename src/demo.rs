@@ -1,7 +1,10 @@
 // Copyright (c) 2022 Sam Blenny
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
-use super::{clear_region, paint_str, ClipRect, Cursor, FrBuf};
+use crate::blit::{clear_region, paint_str};
+use crate::cliprect::ClipRect;
+use crate::cursor::Cursor;
+use crate::framebuffer::FrBuf;
 
 /// Demonstrate available fonts
 pub fn sample_text(fb: &mut FrBuf) {

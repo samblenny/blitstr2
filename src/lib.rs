@@ -3,28 +3,31 @@
 //
 #![no_std]
 
-mod api;
-mod blit;
-mod cliprect;
-mod cursor;
+// Just export all the things so people can mix and match building blocks
+// as they like. In particular, this is meant to allow for flexible DIY
+// word-wrapping and glyph-lookup strategies beyond what I've implemented
+// here already.
+pub mod blit;
+pub mod cliprect;
+pub mod cursor;
 pub mod demo;
-mod fonts;
-mod framebuffer;
-mod m3hash;
-mod pt;
-
-// Export v1 api names. The point of using re-exports is to allow for splitting
-// the crate implementation into relatively small modules that are easy to
-// refactor without breaking the public api.
-pub use api::v1::*;
+pub mod fonts;
+pub mod framebuffer;
+pub mod m3hash;
+pub mod pt;
 
 /// These are integration tests aimed at ensuring pixel-accurate stability of
 /// string painting operations by exercising edge cases around glyph lookup,
 /// word-wrapping, etc.
 #[cfg(test)]
 mod tests {
-    use crate::api::v1::*;
+    use crate::blit::{clear_region, paint_str};
+    use crate::cliprect::ClipRect;
+    use crate::cursor::Cursor;
+    use crate::framebuffer::{new_fr_buf, FrBuf, FRAME_BUF_SIZE, LINES, WIDTH, WORDS_PER_LINE};
     use crate::m3hash;
+    use crate::pt::Pt;
+    use crate::demo;
 
     #[test]
     fn test_clear_region() {
@@ -99,5 +102,60 @@ mod tests {
             }
         }
         assert_eq!(m3hash::frame_buffer(fb, 0), 0xE5240DD1); // Same hash
+    }
+
+    #[test]
+    fn test_blit() {
+        let fb = &mut new_fr_buf();
+        let clip = ClipRect::full_screen();
+        clear_region(fb, clip);
+        let cursor = &mut Cursor::from_top_left_of(clip);
+        paint_str(fb, clip, cursor, "abc");
+        assert_eq!(m3hash::frame_buffer(fb, 0), 0x529828DB);
+    }
+
+    #[test]
+    fn test_cliprect() {
+        let cr1 = ClipRect {
+            min: Pt { x: 1, y: 2 },
+            max: Pt { x: 3, y: 4 },
+        };
+        assert_eq!(cr1, ClipRect::new(1, 2, 3, 4));
+        assert_ne!(ClipRect::full_screen(), ClipRect::padded_screen());
+    }
+
+    #[test]
+    fn test_cursor() {
+        let c1 = Cursor {
+            pt: Pt { x: 1, y: 2 },
+            line_height: 0,
+        };
+        assert_eq!(c1, Cursor::new(1, 2, 0));
+        let clip = ClipRect::new(1, 2, 3, 4);
+        let c2 = Cursor::from_top_left_of(clip);
+        assert_eq!(c1.line_height, c2.line_height);
+    }
+
+    #[test]
+    fn test_demo() {
+        let fb = &mut new_fr_buf();
+        demo::sample_text(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 0x59AA26A1);
+    }
+
+    #[test]
+    fn test_framebuffer() {
+        assert_eq!(LINES * WORDS_PER_LINE, FRAME_BUF_SIZE);
+        assert!(LINES > 0);
+        assert!(WIDTH > 0);
+        let fb: FrBuf = new_fr_buf();
+        assert!(fb.len() > 0);
+    }
+
+    #[test]
+    fn test_pt() {
+        let p1 = Pt { x: 1, y: 2 };
+        let p2 = Pt::new(1, 2);
+        assert_eq!(p1, p2);
     }
 }

@@ -4,9 +4,10 @@
 #![no_std]
 extern crate blitstr2;
 
-use blitstr2::FrBuf;
+use blitstr2::framebuffer::{FrBuf, new_fr_buf};
+use blitstr2::demo;
 
-static mut FB: FrBuf = blitstr2::new_fr_buf();
+static mut FB: FrBuf = new_fr_buf();
 
 /// For building wasm32 no_std, add panic handler and functions to let
 /// javascript check shared buffer pointers. This panic handler conflicts with
@@ -18,8 +19,7 @@ pub mod no_std_bindings;
 #[no_mangle]
 pub extern "C" fn init() {
     // Show sample text
-    blitstr2::demo::sample_text(unsafe { &mut FB });
-//    blitstr2::demo::goose_poem(unsafe { &mut FB });
+    demo::sample_text(unsafe { &mut FB });
 }
 
 /// Export pointer to frame buffer shared memory for javascript + wasm32
