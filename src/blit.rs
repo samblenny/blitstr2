@@ -8,15 +8,15 @@ use crate::framebuffer::{FrBuf, LINES, WIDTH, WORDS_PER_LINE};
 use crate::pt::Pt;
 
 /// Null glyph to use when everything else fails
-const NULL_GLYPH: [u32; 8] = [0, 0x5500AA, 0x5500AA, 0x5500AA, 0x5500AA, 0x5500AA, 0, 0];
-const NULL_GLYPH_SPRITE: fonts::GlyphSprite = fonts::GlyphSprite {
+pub const NULL_GLYPH: [u32; 8] = [0, 0x5500AA, 0x5500AA, 0x5500AA, 0x5500AA, 0x5500AA, 0, 0];
+pub const NULL_GLYPH_SPRITE: fonts::GlyphSprite = fonts::GlyphSprite {
     glyph: &NULL_GLYPH,
     wide: 8u8,
     high: 12u8,
 };
 
 /// Unicode replacement character
-const REPLACEMENT: char = '\u{FFFD}';
+pub const REPLACEMENT: char = '\u{FFFD}';
 
 /// Clear a screen region bounded by (clip.min.x,clip.min.y)..(clip.min.x,clip.max.y)
 pub fn clear_region(fb: &mut FrBuf, clip: ClipRect) {
