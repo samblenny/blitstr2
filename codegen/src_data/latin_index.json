@@ -205,6 +205,7 @@
 { "hex": "2020", "row": 0, "col": 10, "label": "†" },
 { "hex": "2021", "row": 0, "col": 14, "label": "‡" },
 { "hex": "2022", "row": 5, "col": 10, "label": "•" },
+{ "hex": "2026", "row": 9, "col": 12, "label": "…" },
 { "hex": "20AC", "row": 11, "col": 13, "label": "€" },
 { "hex": "FFFD", "row": 0, "col": 15, "label": "�" }
 ] }

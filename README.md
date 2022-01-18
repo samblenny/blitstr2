@@ -3,6 +3,19 @@
 multi-lingual string blitter for 1-bit monochrome (sequel to blitstr)
 
 
+## Text Samples
+
+![small_sampler](doc/small_sampler.png)
+
+![regular_sampler](doc/regular_sampler.png)
+
+![mono_sampler](doc/mono_sampler.png)
+
+![bold_sampler](doc/bold_sampler.png)
+
+![multi_sampler](doc/multi_sampler.png)
+
+
 ## What's New
 
 Compared to the original version of blitstr, blitstr2:

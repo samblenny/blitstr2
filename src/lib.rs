@@ -75,10 +75,18 @@ mod tests {
 
     #[test]
     /// Test that the small latin font works
-    fn test_paint_str_pangram_latin_small() {
+    fn test_paint_latin_small_sampler() {
         let fb = &mut new_fr_buf();
-        demo::paint_pangram_latin_small(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 1798718640);
+        demo::paint_latin_small_sampler(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 4022162394);
+    }
+
+    #[test]
+    /// Test that the regular latin font works
+    fn test_paint_latin_regular_sampler() {
+        let fb = &mut new_fr_buf();
+        demo::paint_latin_regular_sampler(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 1881526323);
     }
 
     #[test]
@@ -86,7 +94,7 @@ mod tests {
     fn test_paint_latin_bold_sampler() {
         let fb = &mut new_fr_buf();
         demo::paint_latin_bold_sampler(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 2286084545);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 2068748088);
     }
 
     #[test]
@@ -94,7 +102,7 @@ mod tests {
     fn test_paint_latin_mono_sampler() {
         let fb = &mut new_fr_buf();
         demo::paint_latin_mono_sampler(fb);
-        assert_eq!(m3hash::frame_buffer(fb, 0), 74303647);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 1438437699);
     }
 
     #[test]

@@ -19,7 +19,7 @@ pub const MAX_HEIGHT: u8 = 15;
 ///     to the glyph you want to locate
 ///  2. Multiply resulting CODEPOINTS index by 8 (<<3) to get index into GLYPHS for
 ///     the corresponding glyph sprite (because 16*16px sprite size is 8*u32)
-pub const CODEPOINTS: [u32; 206] = [
+pub const CODEPOINTS: [u32; 207] = [
 0x00020,
 0x00021,
 0x00022,
@@ -224,6 +224,7 @@ pub const CODEPOINTS: [u32; 206] = [
 0x02020,
 0x02021,
 0x02022,
+0x02026,
 0x020AC,
 0x0FFFD,
 ];
@@ -231,7 +232,7 @@ pub const CODEPOINTS: [u32; 206] = [
 /// Packed 16px * 16px glyph pattern data.
 /// Pixels are packed in row-major order with LSB of first pixel word
 /// containing the top left pixel. Bit of 0 means clear, 1 means set
-pub const GLYPHS: [u32; 1648] = [
+pub const GLYPHS: [u32; 1656] = [
 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 0x00000000, 0x00030000, 0x00030003, 0x00030003, 0x00000003, 0x00030003, 0x00000000, 0x00000000,
 0x00000000, 0x00050000, 0x00050005, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -436,12 +437,13 @@ pub const GLYPHS: [u32; 1648] = [
 0x00000000, 0x00020000, 0x00020007, 0x00020002, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
 0x00000000, 0x00020000, 0x00020007, 0x00070002, 0x00000002, 0x00000000, 0x00000000, 0x00000000,
 0x00000000, 0x00000000, 0x000e0000, 0x001f001f, 0x000e001f, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x03330333, 0x00000000, 0x00000000,
 0x00000000, 0x00000000, 0x00840078, 0x007f0002, 0x003f0002, 0x00780084, 0x00000000, 0x00000000,
 0x00000000, 0x00380010, 0x00d6006c, 0x01ef01df, 0x006c00fe, 0x00100038, 0x00000000, 0x00000000,
 ];
 
 /// Widths for proportional glyphs
-pub const WIDTHS: [u8; 206] = [
+pub const WIDTHS: [u8; 207] = [
 5,
 2,
 3,
@@ -646,6 +648,7 @@ pub const WIDTHS: [u8; 206] = [
 3,
 3,
 5,
+10,
 8,
 9,
 ];
