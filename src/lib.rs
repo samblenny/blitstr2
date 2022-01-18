@@ -82,6 +82,22 @@ mod tests {
     }
 
     #[test]
+    /// Test that the bold latin font works
+    fn test_paint_latin_bold_sampler() {
+        let fb = &mut new_fr_buf();
+        demo::paint_latin_bold_sampler(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 2286084545);
+    }
+
+    #[test]
+    /// Test that the monospace latin font works
+    fn test_paint_latin_mono_sampler() {
+        let fb = &mut new_fr_buf();
+        demo::paint_latin_mono_sampler(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 74303647);
+    }
+
+    #[test]
     /// This tests that word-wrapping and text layout work properly. It should
     /// be possible to get the exact same results by using one paint_str()
     /// call to paint a full string, or by reusing a cursor across many calls

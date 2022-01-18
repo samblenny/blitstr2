@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 #![allow(dead_code)]
+pub mod bold;
 pub mod emoji;
 pub mod ja;
 pub mod kr;
+pub mod mono;
 pub mod regular;
 pub mod small;
 pub mod zh;
@@ -55,6 +57,42 @@ pub fn regular_glyph(ch: char) -> Result<GlyphSprite, usize> {
                     glyph: &regular::GLYPHS[offset..end],
                     wide: regular::WIDTHS[n],
                     high: regular::MAX_HEIGHT,
+                }),
+                false => Err(0),
+            }
+        }
+        _ => Err(1),
+    }
+}
+
+pub fn bold_glyph(ch: char) -> Result<GlyphSprite, usize> {
+    match bold::CODEPOINTS.binary_search(&(ch as u32)) {
+        Ok(n) => {
+            let offset = n << 3;
+            let end = offset + 8;
+            match end <= bold::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &bold::GLYPHS[offset..end],
+                    wide: bold::WIDTHS[n],
+                    high: bold::MAX_HEIGHT,
+                }),
+                false => Err(0),
+            }
+        }
+        _ => Err(1),
+    }
+}
+
+pub fn mono_glyph(ch: char) -> Result<GlyphSprite, usize> {
+    match mono::CODEPOINTS.binary_search(&(ch as u32)) {
+        Ok(n) => {
+            let offset = n << 3;
+            let end = offset + 8;
+            match end <= mono::GLYPHS.len() {
+                true => Ok(GlyphSprite {
+                    glyph: &mono::GLYPHS[offset..end],
+                    wide: mono::WIDTHS[n],
+                    high: mono::MAX_HEIGHT,
                 }),
                 false => Err(0),
             }

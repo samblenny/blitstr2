@@ -28,6 +28,8 @@ pub extern "C" fn init() {
     // demo::paint_pangram_char_by_char(unsafe { &mut FB });
     // demo::paint_pangram_latin_small(unsafe { &mut FB });
     // demo::low_level_glyph_blits(unsafe { &mut FB });
+    // demo::paint_latin_bold_sampler(unsafe { &mut FB });
+    // demo::paint_latin_mono_sampler(unsafe { &mut FB });
 }
 
 /// Export pointer to frame buffer shared memory for javascript + wasm32

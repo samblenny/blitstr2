@@ -29,7 +29,7 @@ func NewGlyphSetFrom(pl []BlitPattern, fs FontSpec) GlyphSet {
 		// Update the block index with the correct offset (DATA[n]) for pattern header
 		g.Insert(p.CS.Uint32FromHex(), g.GlyphsLen)
 		g.GlyphsLen += len(p.Words)
-		if fs.GlyphTrim == "proportional" || fs.GlyphTrim == "monspaced" {
+		if fs.GlyphTrim == "proportional" || fs.GlyphTrim == "monospace" {
 			g.Widths += fmt.Sprintf("%d,\n", p.Width)
 			g.WidthsLen += 1
 		}

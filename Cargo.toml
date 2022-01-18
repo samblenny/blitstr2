@@ -1,6 +1,6 @@
 [package]
 name = "blitstr2"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["samblenny"]
 edition = "2018"
 license = "MIT OR Apache-2.0"

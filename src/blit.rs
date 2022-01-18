@@ -79,6 +79,28 @@ pub fn find_glyph_latin_small(ch: char) -> fonts::GlyphSprite {
     }
 }
 
+/// Find glyph for char using only the latin bold font data
+pub fn find_glyph_latin_bold(ch: char) -> fonts::GlyphSprite {
+    match fonts::bold_glyph(ch) {
+        Ok(g) => g,
+        _ => match fonts::bold_glyph(REPLACEMENT) {
+            Ok(g) => g,
+            _ => NULL_GLYPH_SPRITE,
+        },
+    }
+}
+
+/// Find glyph for char using only the latin mono font data
+pub fn find_glyph_latin_mono(ch: char) -> fonts::GlyphSprite {
+    match fonts::mono_glyph(ch) {
+        Ok(g) => g,
+        _ => match fonts::mono_glyph(REPLACEMENT) {
+            Ok(g) => g,
+            _ => NULL_GLYPH_SPRITE,
+        },
+    }
+}
+
 /// XOR blit a string using multi-lingual glyphs with specified clip rect, starting at cursor
 pub fn paint_str(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
     const KERN: usize = 2;
@@ -113,6 +135,56 @@ pub fn paint_str_latin_small(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: 
         } else {
             // Look up the glyph for this char
             let glyph = find_glyph_latin_small(ch);
+            let wide = glyph.wide as usize;
+            let high = glyph.high as usize;
+            // Adjust for word wrapping
+            if c.pt.x + wide + KERN >= clip.max.x {
+                newline(clip, c);
+            }
+            // Blit the glyph and advance the cursor
+            xor_glyph(fb, &c.pt, glyph);
+            c.pt.x += wide + KERN;
+            if high > c.line_height {
+                c.line_height = high;
+            }
+        }
+    }
+}
+
+/// XOR blit a string using latin bold glyphs with specified clip rect, starting at cursor
+pub fn paint_str_latin_bold(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
+    const KERN: usize = 2;
+    for ch in s.chars() {
+        if ch == '\n' {
+            newline(clip, c);
+        } else {
+            // Look up the glyph for this char
+            let glyph = find_glyph_latin_bold(ch);
+            let wide = glyph.wide as usize;
+            let high = glyph.high as usize;
+            // Adjust for word wrapping
+            if c.pt.x + wide + KERN >= clip.max.x {
+                newline(clip, c);
+            }
+            // Blit the glyph and advance the cursor
+            xor_glyph(fb, &c.pt, glyph);
+            c.pt.x += wide + KERN;
+            if high > c.line_height {
+                c.line_height = high;
+            }
+        }
+    }
+}
+
+/// XOR blit a string using latin mono glyphs with specified clip rect, starting at cursor
+pub fn paint_str_latin_mono(fb: &mut FrBuf, clip: ClipRect, c: &mut Cursor, s: &str) {
+    const KERN: usize = 0;
+    for ch in s.chars() {
+        if ch == '\n' {
+            newline(clip, c);
+        } else {
+            // Look up the glyph for this char
+            let glyph = find_glyph_latin_mono(ch);
             let wide = glyph.wide as usize;
             let high = glyph.high as usize;
             // Adjust for word wrapping

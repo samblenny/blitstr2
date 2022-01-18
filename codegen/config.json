@@ -56,6 +56,32 @@
       "rustout": "../src/fonts/kr.rs"
     },
     {
+      "name": "Bold",
+      "sprites": "src_data/latin_bold.png",
+      "size": 15,
+      "cols": 16,
+      "gutter": 1,
+      "border": 1,
+      "legal": "src_data/chicago_legal.txt",
+      "index": "src_data/latin_index.json",
+      "indexType": "json-grid-coord",
+      "glyphTrim": "proportional",
+      "rustout": "../src/fonts/bold.rs"
+    },
+    {
+      "name": "Mono",
+      "sprites": "src_data/latin_mono.png",
+      "size": 15,
+      "cols": 16,
+      "gutter": 1,
+      "border": 1,
+      "legal": "src_data/courier_legal.txt",
+      "index": "src_data/latin_index.json",
+      "indexType": "json-grid-coord",
+      "glyphTrim": "monospace",
+      "rustout": "../src/fonts/mono.rs"
+    },
+    {
       "name": "Regular",
       "sprites": "src_data/latin_regular.png",
       "size": 15,

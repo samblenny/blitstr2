@@ -1,10 +1,15 @@
 // Copyright (c) 2022 Sam Blenny
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
-use crate::blit::{clear_region, paint_str, paint_str_latin_small, xor_glyph};
+use crate::blit::{
+    clear_region, paint_str, paint_str_latin_bold, paint_str_latin_mono, paint_str_latin_small,
+    xor_glyph,
+};
 use crate::cliprect::ClipRect;
 use crate::cursor::Cursor;
-use crate::fonts::{emoji_glyph, ja_glyph, kr_glyph, regular_glyph, small_glyph, zh_glyph};
+use crate::fonts::{
+    bold, emoji_glyph, ja_glyph, kr_glyph, mono, regular_glyph, small_glyph, zh_glyph,
+};
 use crate::framebuffer::FrBuf;
 use crate::pt::Pt;
 
@@ -80,6 +85,40 @@ pub fn paint_pangram_latin_small(fb: &mut FrBuf) {
     clear_region(fb, clip);
     let cursor = &mut Cursor::from_top_left_of(clip);
     paint_str_latin_small(fb, clip, cursor, PANGRAM);
+}
+
+/// Paint sampler in latin bold glyphs
+pub fn paint_latin_bold_sampler(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    let mut buf = [0u8; 4];
+    for cp in bold::CODEPOINTS {
+        match char::from_u32(cp) {
+            Some(c) => {
+                let s = c.encode_utf8(&mut buf);
+                paint_str_latin_bold(fb, clip, cursor, s)
+            }
+            _ => (),
+        };
+    }
+}
+
+/// Paint sampler in latin mono glyphs
+pub fn paint_latin_mono_sampler(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    let mut buf = [0u8; 4];
+    for cp in mono::CODEPOINTS {
+        match char::from_u32(cp) {
+            Some(c) => {
+                let s = c.encode_utf8(&mut buf);
+                paint_str_latin_mono(fb, clip, cursor, s)
+            }
+            _ => (),
+        };
+    }
 }
 
 /// Do low-level glyph blitting without word-wrapping
