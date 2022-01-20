@@ -66,11 +66,19 @@ mod tests {
     ///  - Japanese
     ///  - Simplified Chinese
     ///  - Korean
-    fn test_demo_sample_text_frame_buffer_hash() {
+    fn test_sample_text() {
         let fb = &mut new_fr_buf();
         demo::sample_text(fb);
         assert_eq!(m3hash::frame_buffer(fb, 0), 770682562);
         assert_eq!(m3hash::frame_buffer(fb, 1), 1047968722);
+    }
+
+    #[test]
+    /// Like test_sample_text, but with 2x scaled glyphs
+    fn test_sample_text_2x() {
+        let fb = &mut new_fr_buf();
+        demo::sample_text_2x(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 4264296535);
     }
 
     #[test]
@@ -79,6 +87,14 @@ mod tests {
         let fb = &mut new_fr_buf();
         demo::paint_latin_small_sampler(fb);
         assert_eq!(m3hash::frame_buffer(fb, 0), 4022162394);
+    }
+
+    #[test]
+    /// Test that the small latin font works with 2x scaling
+    fn test_paint_latin_small_sampler_2x() {
+        let fb = &mut new_fr_buf();
+        demo::paint_latin_small_sampler_2x(fb);
+        assert_eq!(m3hash::frame_buffer(fb, 0), 4001104176);
     }
 
     #[test]

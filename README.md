@@ -5,6 +5,9 @@ multi-lingual string blitter for 1-bit monochrome (sequel to blitstr)
 
 ## Text Samples
 
+These screenshots show the output of demo functions in [src/demo.rs](src/demo.rs).
+For learning how to use blitstr2, `demo.rs` is a good place to start reading.
+
 ![small_sampler](doc/small_sampler.png)
 
 ![regular_sampler](doc/regular_sampler.png)
@@ -14,6 +17,10 @@ multi-lingual string blitter for 1-bit monochrome (sequel to blitstr)
 ![bold_sampler](doc/bold_sampler.png)
 
 ![multi_sampler](doc/multi_sampler.png)
+
+![small_sampler_2x](doc/small_sampler_2x.png)
+
+![multi_sampler_2x](doc/multi_sampler_2x.png)
 
 
 ## What's New

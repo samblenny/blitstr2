@@ -32,6 +32,8 @@ pub extern "C" fn init() {
     // demo::paint_latin_regular_sampler(unsafe { &mut FB });
     // demo::paint_latin_bold_sampler(unsafe { &mut FB });
     // demo::paint_latin_mono_sampler(unsafe { &mut FB });
+    // demo::paint_latin_small_sampler_2x(unsafe { &mut FB });
+    // demo::sample_text_2x(unsafe { &mut FB });
 }
 
 /// Export pointer to frame buffer shared memory for javascript + wasm32

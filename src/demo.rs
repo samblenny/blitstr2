@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 use crate::blit::{
-    clear_region, paint_str, paint_str_latin_bold, paint_str_latin_mono, paint_str_latin_regular,
-    paint_str_latin_small, xor_glyph,
+    clear_region, paint_str, paint_str_2x, paint_str_latin_bold, paint_str_latin_mono,
+    paint_str_latin_regular, paint_str_latin_small, paint_str_latin_small_2x, xor_glyph,
 };
 use crate::cliprect::ClipRect;
 use crate::cursor::Cursor;
@@ -50,6 +50,22 @@ pub fn sample_text(fb: &mut FrBuf) {
     paint_str(fb, clip, c, coffee);
 }
 
+/// Demonstrate available fonts with 2x scaling
+pub fn sample_text_2x(fb: &mut FrBuf) {
+    let wrap = &concat!(
+        " 🍎 🎸 🕶  🍎 😸 🎩  🔑\n",
+        "The quick brown fox jumps over the lazy dog.\n",
+        "Zwölf Boxkämpfer jagen Viktor quer über den\n großen Sylter Deich.\n",
+        "いろはにほへと\n",
+        "鹅、鹅、鹅，\n",
+        "커피 주세요"
+    );
+    clear_region(fb, ClipRect::full_screen());
+    let clip = ClipRect::padded_screen();
+    let c = &mut Cursor::from_top_left_of(clip);
+    paint_str_2x(fb, clip, c, wrap);
+}
+
 pub const PANGRAM: &str = "The quick brown fox jumps over the lazy dog.";
 
 /// Paint pangram all at once
@@ -80,7 +96,7 @@ pub fn paint_pangram_char_by_char(fb: &mut FrBuf) {
     }
 }
 
-/// Paint pangram in small latin glyphs
+/// Paint sampler in small latin glyphs
 pub fn paint_latin_small_sampler(fb: &mut FrBuf) {
     let clip = ClipRect::full_screen();
     clear_region(fb, clip);
@@ -101,7 +117,28 @@ pub fn paint_latin_small_sampler(fb: &mut FrBuf) {
     paint_str_latin_small(fb, clip, cursor, PANGRAM);
 }
 
-/// Paint pangram in regular latin glyphs
+/// Paint sampler in small latin glyphs with 2x scale (9px becomes 18px)
+pub fn paint_latin_small_sampler_2x(fb: &mut FrBuf) {
+    let clip = ClipRect::full_screen();
+    clear_region(fb, clip);
+    let cursor = &mut Cursor::from_top_left_of(clip);
+    // First, iterate over every glyph in the font
+    let mut buf = [0u8; 4];
+    for cp in small::CODEPOINTS {
+        match char::from_u32(cp) {
+            Some(c) => {
+                let s = c.encode_utf8(&mut buf);
+                paint_str_latin_small_2x(fb, clip, cursor, s)
+            }
+            _ => (),
+        };
+    }
+    // Then, do the pangram
+    paint_str_latin_small_2x(fb, clip, cursor, &"\n\n");
+    paint_str_latin_small_2x(fb, clip, cursor, PANGRAM);
+}
+
+/// Paint sampler in regular latin glyphs
 pub fn paint_latin_regular_sampler(fb: &mut FrBuf) {
     let clip = ClipRect::full_screen();
     clear_region(fb, clip);
